@@ -11,4 +11,4 @@ compatible with most QB64 versions
 
 
 
-![NESTEA logo](/RESOURCES/NESTEA_LOGO.png")
+![NESTEA logo]("/RESOURCES/NESTEA_LOGO.png")
