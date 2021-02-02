@@ -3,7 +3,7 @@
 
 
 
-<IMG SRC ="/RESOURCES/NESTEA_LOGO.png" width=250 height=250> an nes emulator for QB64 thats a work in progress and needs improvements
+<IMG SRC ="/RESOURCES/NESTEA_LOGO.png" width=250 height=250></IMG> an nes emulator for QB64 thats a work in progress and needs improvements
 
 
                                                              feel free to help me make it better! :D
