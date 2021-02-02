@@ -11,4 +11,4 @@ compatible with most QB64 versions
 
 
 
-<IMG SRC ="/RESOURCES/NESTEA_LOGO.png" width=250>
+<IMG SRC ="/RESOURCES/NESTEA_LOGO.png" width=250 height=250>
