@@ -11,4 +11,4 @@ compatible with most QB64 versions
 
 
 
-![NESTEA logo](/RESOURCES/NESTEA_LOGO.png = 250x250 )
+![NESTEA logo](/RESOURCES/NESTEA_LOGO.png){:height="250px" width="250px"}
