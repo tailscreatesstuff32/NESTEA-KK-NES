@@ -188,7 +188,7 @@ END SUB
 SUB ex
     p = 32
     s = 255
-    pc = r6(65532) + r6(65533) * 256
+    pc = r6(65532) + r6(65533) * 256 ' Read RESET address from vectors at end of address range to get current program counter at start
     DO
         cd = r6(pc)
         pc = pc + 1
@@ -200,6 +200,7 @@ SUB ex
         'please compare with original nesem for assembly comments :D
         'i think like jpm, cmp, sta things there ;p
         'i dont understand that
+        ' Opcode List https://llx.com/Neil/a2/opcodes.html
         SELECT CASE op(cd)
             CASE 1
                 pc = pc + 1
@@ -702,7 +703,7 @@ SUB md (cd)
 END SUB
 
 FUNCTION p6 (a, b, c)
-    a = c AND 255
+    a = c AND 255 ' extract only the byte
     p6 = pp(a \ 128, pp(3 + (a = 0), b))
 END FUNCTION
 
