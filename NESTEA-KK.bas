@@ -63,7 +63,7 @@ DIM CART AS STRING
 DIM SHARED cw(4)
 DIM SHARED dq(3, 255, 257)
 DIM SHARED jp(1, 8)
-DIM SHARED k0(2047)
+DIM SHARED k0(2047) ' CPU RAM
 DIM SHARED k1(4, 8191)
 DIM SHARED kb(127)
 DIM SHARED mr(8)
@@ -1057,11 +1057,11 @@ FUNCTION t9 (a, b, c, d)
 END FUNCTION
 
 SUB w6 (a, v, s)
-    b = v AND 255
+    b = v AND 255  'Extract only the first 8 bits
     SELECT CASE a
-        CASE 0 TO 8191
+        CASE 0 TO 8191 ' First 8K of memory address space, this is CPU RAM because it's 2K and then it's mirrored as per https://wiki.nesdev.com/w/index.php/CPU_memory_map
             k0(a AND 2047) = b
-        CASE 8192 TO 16383
+        CASE 8192 TO 16383 ' These are hardware registers, including PPU, etc
             pu(0) = b
             SELECT CASE (a AND 7)
                 CASE 0
