@@ -72,9 +72,9 @@ DIM SHARED op(511)
 DIM SHARED p2(31)
 DIM SHARED pp(3, 255)
 DIM SHARED pr(-1 TO 8)
-DIM SHARED pu(9)
+DIM SHARED pu(9) ' PPU Registers 
 DIM SHARED rg(3)
-DIM SHARED rm(256)
+DIM SHARED rm(256) ' OAM bytes for sprites
 DIM SHARED sm(21)
 DIM SHARED si(48)
 DIM SHARED vd(61439)
@@ -707,11 +707,11 @@ FUNCTION p6 (a, b, c)
     p6 = pp(a \ 128, pp(3 + (a = 0), b))
 END FUNCTION
 
-FUNCTION r6 (a)
+FUNCTION r6 (a) ' read value from RAM?
     SELECT CASE a
-        CASE 0 TO 8191
-            r6 = k0(a AND 2047&)
-        CASE 8192 TO 16383
+        CASE 0 TO 8191 ' read from CPU RAM
+            r6 = k0(a AND 2047&) ' make sure to only actually read from the 2KB that's RAM
+        CASE 8192 TO 16383 ' Reading from PPU and other mapped registers
             SELECT CASE (a AND 7)
                 CASE 0, 1, 5, 6
                     r6 = pu(0)
@@ -1107,7 +1107,7 @@ SUB w6 (a, v, s)
         CASE 16384 TO 16403
             sm(a - 16384) = b
             IF a < 16400 THEN cw((a - 16384) \ 4) = 1
-        CASE 16404
+        CASE 16404 ' DMA copy for OAM - loops through address where b is MSB and i is LSB and stores in rm
             FOR i = 0 TO 255
                 rm(i) = k0(i + b * 256&)
             NEXT
