@@ -589,6 +589,13 @@ SUB iz
     FOR i = 0 TO 255
         op(i) = VAL("&h" + MID$(a$, i * 2 + 1, 2))
     NEXT
+    ' For each instruction, there's another value stored in op that identifies
+    ' if it should be fetching from memory etc that's used in the md sub that's
+    ' looped up using this array. The array is offset from the opcode by 256 so 
+    ' it all lives in the op array. For example, opcode 1 has a value of 1 here 
+    ' and opcode 5 has a value of 2 even though they're both ORA instructions.
+    ' That's because 2 identifies that this is an ORA against a literal byte
+    ' whereas 1 identifies that it's an address offset pointer-read ORA
     a$ = "01002220030044405670288009004aa04100222003004440567088800900aaa0"
     a$ = a$ + "01000220030044405670088009000aa0010022200300b440567088800900caa0"
     a$ = a$ + "5100222003004440567088d009004aa03130222003004440567088d00900aa90"
