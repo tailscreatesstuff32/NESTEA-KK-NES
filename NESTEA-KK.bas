@@ -778,7 +778,7 @@ FUNCTION r8 (a, b)
     r8 = r6(b)
 END FUNCTION
 
-FUNCTION r9 (a)
+FUNCTION r9 (a) ' Read an address out of memory (low and high byte)
     r9 = r6(a) + r6(a + 1) * 256
 END FUNCTION
 
