@@ -190,9 +190,9 @@ SUB ex
     s = 255
     pc = r6(65532) + r6(65533) * 256 ' Read RESET address from vectors at end of address range to get current program counter at start
     DO
-        cd = r6(pc)
-        pc = pc + 1
-        tc = tc + (cd AND 7)
+        cd = r6(pc) ' read instruction
+        pc = pc + 1 ' increment the program counter
+        tc = tc + (cd AND 7) ' strip this down to a byte and add to tc - not sure what tc is yet
 
 
         'opcode instructions
@@ -571,6 +571,13 @@ SUB iz
         pn 128 + i, r, g, b
         pn 192 + i, r, g, b
     NEXT
+    ' The instructions are encoded in this string, basically taking the opcode
+    ' and mapping it to an index for a case statement later that maps the common
+    ' operations together. For example, you'll see that the second set of digits "02"
+    ' match the 6th pair (also "02") - this is converted to a hex string and then to 
+    ' an integer value which maps the two opcodes 1 and 5 to invoke an ORA. You'll
+    ' also notice that the instructions that aren't availble, for example, opcode 2,
+    ' map to '00' 
     a$ = "0102000000020300040205000002030006020200000203000702080000020300"
     a$ = a$ + "090a00000b0a0c000d0a0e000b0a0c000f0a0a000b0a0c00100a11000b0a0c00"
     a$ = a$ + "12130000001314001513160017131400181313000013140019131a0000131400"
