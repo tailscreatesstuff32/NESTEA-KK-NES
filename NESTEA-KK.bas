@@ -63,7 +63,7 @@ DIM CART AS STRING
 DIM SHARED cw(4)
 DIM SHARED dq(3, 255, 257)
 DIM SHARED jp(1, 8)
-DIM SHARED k0(2047)
+DIM SHARED k0(2047) ' CPU RAM
 DIM SHARED k1(4, 8191)
 DIM SHARED kb(127)
 DIM SHARED mr(8)
@@ -72,9 +72,9 @@ DIM SHARED op(511)
 DIM SHARED p2(31)
 DIM SHARED pp(3, 255)
 DIM SHARED pr(-1 TO 8)
-DIM SHARED pu(9)
+DIM SHARED pu(9) ' PPU Registers 
 DIM SHARED rg(3)
-DIM SHARED rm(256)
+DIM SHARED rm(256) ' OAM bytes for sprites
 DIM SHARED sm(21)
 DIM SHARED si(48)
 DIM SHARED vd(61439)
@@ -188,11 +188,11 @@ END SUB
 SUB ex
     p = 32
     s = 255
-    pc = r6(65532) + r6(65533) * 256
+    pc = r6(65532) + r6(65533) * 256 ' Read RESET address from vectors at end of address range to get current program counter at start
     DO
-        cd = r6(pc)
-        pc = pc + 1
-        tc = tc + (cd AND 7)
+        cd = r6(pc) ' read instruction
+        pc = pc + 1 ' increment the program counter
+        tc = tc + (cd AND 7) ' strip this down to a byte and add to tc - not sure what tc is yet
 
 
         'opcode instructions
@@ -200,6 +200,7 @@ SUB ex
         'please compare with original nesem for assembly comments :D
         'i think like jpm, cmp, sta things there ;p
         'i dont understand that
+        ' Opcode List https://llx.com/Neil/a2/opcodes.html
         SELECT CASE op(cd)
             CASE 1
                 pc = pc + 1
@@ -570,6 +571,13 @@ SUB iz
         pn 128 + i, r, g, b
         pn 192 + i, r, g, b
     NEXT
+    ' The instructions are encoded in this string, basically taking the opcode
+    ' and mapping it to an index for a case statement later that maps the common
+    ' operations together. For example, you'll see that the second set of digits "02"
+    ' match the 6th pair (also "02") - this is converted to a hex string and then to 
+    ' an integer value which maps the two opcodes 1 and 5 to invoke an ORA. You'll
+    ' also notice that the instructions that aren't availble, for example, opcode 2,
+    ' map to '00' 
     a$ = "0102000000020300040205000002030006020200000203000702080000020300"
     a$ = a$ + "090a00000b0a0c000d0a0e000b0a0c000f0a0a000b0a0c00100a11000b0a0c00"
     a$ = a$ + "12130000001314001513160017131400181313000013140019131a0000131400"
@@ -581,6 +589,13 @@ SUB iz
     FOR i = 0 TO 255
         op(i) = VAL("&h" + MID$(a$, i * 2 + 1, 2))
     NEXT
+    ' For each instruction, there's another value stored in op that identifies
+    ' if it should be fetching from memory etc that's used in the md sub that's
+    ' looped up using this array. The array is offset from the opcode by 256 so 
+    ' it all lives in the op array. For example, opcode 1 has a value of 1 here 
+    ' and opcode 5 has a value of 2 even though they're both ORA instructions.
+    ' That's because 2 identifies that this is an ORA against a literal byte
+    ' whereas 1 identifies that it's an address offset pointer-read ORA
     a$ = "01002220030044405670288009004aa04100222003004440567088800900aaa0"
     a$ = a$ + "01000220030044405670088009000aa0010022200300b440567088800900caa0"
     a$ = a$ + "5100222003004440567088d009004aa03130222003004440567088d00900aa90"
@@ -702,15 +717,15 @@ SUB md (cd)
 END SUB
 
 FUNCTION p6 (a, b, c)
-    a = c AND 255
+    a = c AND 255 ' extract only the byte
     p6 = pp(a \ 128, pp(3 + (a = 0), b))
 END FUNCTION
 
-FUNCTION r6 (a)
+FUNCTION r6 (a) ' read value from RAM?
     SELECT CASE a
-        CASE 0 TO 8191
-            r6 = k0(a AND 2047&)
-        CASE 8192 TO 16383
+        CASE 0 TO 8191 ' read from CPU RAM
+            r6 = k0(a AND 2047&) ' make sure to only actually read from the 2KB that's RAM
+        CASE 8192 TO 16383 ' Reading from PPU and other mapped registers
             SELECT CASE (a AND 7)
                 CASE 0, 1, 5, 6
                     r6 = pu(0)
@@ -763,7 +778,7 @@ FUNCTION r8 (a, b)
     r8 = r6(b)
 END FUNCTION
 
-FUNCTION r9 (a)
+FUNCTION r9 (a) ' Read an address out of memory (low and high byte)
     r9 = r6(a) + r6(a + 1) * 256
 END FUNCTION
 
@@ -1057,11 +1072,11 @@ FUNCTION t9 (a, b, c, d)
 END FUNCTION
 
 SUB w6 (a, v, s)
-    b = v AND 255
+    b = v AND 255  'Extract only the first 8 bits
     SELECT CASE a
-        CASE 0 TO 8191
+        CASE 0 TO 8191 ' First 8K of memory address space, this is CPU RAM because it's 2K and then it's mirrored as per https://wiki.nesdev.com/w/index.php/CPU_memory_map
             k0(a AND 2047) = b
-        CASE 8192 TO 16383
+        CASE 8192 TO 16383 ' These are hardware registers, including PPU, etc
             pu(0) = b
             SELECT CASE (a AND 7)
                 CASE 0
@@ -1106,7 +1121,7 @@ SUB w6 (a, v, s)
         CASE 16384 TO 16403
             sm(a - 16384) = b
             IF a < 16400 THEN cw((a - 16384) \ 4) = 1
-        CASE 16404
+        CASE 16404 ' DMA copy for OAM - loops through address where b is MSB and i is LSB and stores in rm
             FOR i = 0 TO 255
                 rm(i) = k0(i + b * 256&)
             NEXT
